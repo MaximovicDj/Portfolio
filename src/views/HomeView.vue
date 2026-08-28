@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import {useToast} from "vue-toast-notification";
+import { useToast } from 'vue-toast-notification'
 
 const isMobileMenuOpen = ref(false)
 const currentYear = new Date().getFullYear()
@@ -9,14 +9,75 @@ const isSending = ref(false)
 const isSuccess = ref(false)
 const isError = ref(false)
 
+const errors = ref({
+  name: '',
+  email: '',
+  subject: '',
+  message: '',
+})
+
 const toast = useToast()
 
+const validateForm = (form) => {
+  errors.value = {
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  }
+
+  const name = form.name.value.trim()
+  const email = form.email.value.trim()
+  const subject = form.subject.value.trim()
+  const message = form.message.value.trim()
+
+  let isValid = true
+
+  if (!name) {
+    errors.value.name = 'Name is required.'
+    isValid = false
+  } else if (name.length < 2) {
+    errors.value.name = 'Name must be at least 2 characters.'
+    isValid = false
+  }
+
+  if (!email) {
+    errors.value.email = 'Email is required.'
+    isValid = false
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.value.email = 'Please enter a valid email address.'
+    isValid = false
+  }
+
+  if (!subject) {
+    errors.value.subject = 'Subject is required.'
+    isValid = false
+  } else if (subject.length < 3) {
+    errors.value.subject = 'Subject must be at least 3 characters.'
+    isValid = false
+  }
+
+  if (!message) {
+    errors.value.message = 'Message is required.'
+    isValid = false
+  } else if (message.length < 10) {
+    errors.value.message = 'Message must be at least 10 characters.'
+    isValid = false
+  }
+
+  return isValid
+}
+
 const submitForm = async (event) => {
+  const form = event.target
+
+  if (!validateForm(form)) {
+    return
+  }
+
   isSending.value = true
   isSuccess.value = false
   isError.value = false
-
-  const form = event.target
 
   try {
     const response = await fetch('https://formspree.io/f/mgaeeowv', {
@@ -27,34 +88,57 @@ const submitForm = async (event) => {
       }
     })
 
-    if(response.ok)
-    {
+    if (response.ok) {
       isSuccess.value = true
+
       form.reset()
-      toast.success('Thank you for reaching out. Your message has been ' +
-          'successfully received. I’ll review it and get back to you shortly.', {
-        position: 'top-right',
-      })
-    }
-    else
-    {
+
+      errors.value = {
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+      }
+
+      toast.success(
+          'Thank you for reaching out. Your message has been successfully received. I’ll review it and get back to you shortly.',
+          {
+            position: 'top-right',
+          }
+      )
+    } else {
       isError.value = true
+
+      toast.error(
+          'Something went wrong. Please try again later.',
+          {
+            position: 'top-right',
+          }
+      )
     }
-  }
-  catch (error)
-  {
+  } catch (error) {
     isError.value = true
-  }
-  finally {
+
+    toast.error(
+        'Something went wrong. Please try again later.',
+        {
+          position: 'top-right',
+        }
+    )
+  } finally {
     isSending.value = false
   }
 }
 
 const scrollToSection = (id) => {
   isMobileMenuOpen.value = false
+
   const element = document.getElementById(id)
+
   if (element) {
-    element.scrollIntoView({ behavior: 'smooth' })
+    element.scrollIntoView({
+      behavior: 'smooth'
+    })
   }
 }
 
@@ -143,13 +227,19 @@ onUnmounted(() => {
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
               Djordje Maksimovic
             </h1>
-            <p class="text-xl sm:text-2xl text-blue-400 font-medium mt-2">PHP / Laravel Developer</p>
+            <p class="text-xl sm:text-2xl text-blue-400 font-medium mt-2">PHP & Laravel Developer</p>
             <p class="text-gray-400 text-lg mt-6 max-w-lg leading-relaxed">
-              Building modern web applications with Laravel, Vue and MySQL.
+              PHP and Laravel Developer building modern web applications with Laravel,
+              Vue 3 and MySQL.
               <span class="block mt-2 text-gray-400/80 text-base">
-                4+ years of professional PHP experience working with both legacy systems and modern frameworks.
+                4+ years of professional PHP experience, working with legacy systems,
+                modern frameworks, REST APIs and database-driven applications.
+              </span>
+              <span class="block mt-2 text-gray-400/80 text-base">
+                Open to freelance projects and new development opportunities.
               </span>
             </p>
+
             <div class="flex flex-wrap gap-4 mt-8">
               <button @click="scrollToSection('projects')" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors duration-200">
                 View Projects
@@ -192,8 +282,10 @@ onUnmounted(() => {
         <div class="grid md:grid-cols-5 gap-8 mt-8">
           <div class="md:col-span-3 space-y-4 text-gray-300 leading-relaxed">
             <p>
-              I'm a <span class="text-blue-400 font-medium">PHP / Laravel Developer</span> with around 4 years of professional PHP experience.
-              I currently work with both legacy PHP systems and modern Laravel/Vue applications.
+              I'm a <span class="text-blue-400 font-medium">PHP / Laravel Developer</span>
+              with around 4 years of professional PHP experience.
+              I currently work with both legacy PHP systems and modern
+              Laravel and Vue applications.
             </p>
             <p>
               Working on a large legacy MVC/OOP PHP application has given me deep experience in
@@ -429,18 +521,30 @@ onUnmounted(() => {
             <div>
               <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
               <input type="text" name="name" id="name" class="w-full px-4 py-2 bg-[#111827] border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white placeholder-gray-500 transition-colors duration-200" placeholder="Your name">
+              <p v-if="errors.name" class="text-red-400 text-xs mt-1">
+                {{ errors.name }}
+              </p>
             </div>
             <div>
               <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
               <input type="email" name="email" id="email" class="w-full px-4 py-2 bg-[#111827] border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white placeholder-gray-500 transition-colors duration-200" placeholder="your@email.com">
+              <p v-if="errors.email" class="text-red-400 text-xs mt-1">
+                {{ errors.email }}
+              </p>
             </div>
             <div>
               <label for="subject" class="block text-sm font-medium text-gray-300 mb-1">Subject</label>
               <input type="text" name="subject" id="subject" class="w-full px-4 py-2 bg-[#111827] border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white placeholder-gray-500 transition-colors duration-200" placeholder="Subject">
+              <p v-if="errors.subject" class="text-red-400 text-xs mt-1">
+                {{ errors.subject }}
+              </p>
             </div>
             <div>
               <label for="message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
               <textarea name="message" id="message" rows="5" class="w-full px-4 py-2 bg-[#111827] border border-gray-700 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white placeholder-gray-500 transition-colors duration-200 resize-none" placeholder="Your message..."></textarea>
+              <p v-if="errors.message" class="text-red-400 text-xs mt-1">
+                {{ errors.message }}
+              </p>
             </div>
             <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors duration-200 w-full sm:w-auto">
               Send Message

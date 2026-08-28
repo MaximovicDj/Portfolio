@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://djordje-maksimovic.vercel.app/sitemap.xml
